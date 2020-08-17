@@ -17,6 +17,7 @@ namespace Asm.Installers
 
             services.AddTransient<IContextFactory, Implementation.ContextFactory>();
             services.AddTransient<Context>(services => services.GetService<IContextFactory>().CreateNew());
+            services.AddSingleton<IFallBackLogger, Implementation.FallBackLogger>();
             services.AddTransient<Cosmos.IResilientParameterStore, Implementation.Cosmos.ResilientParameterStore>();
         }
     }

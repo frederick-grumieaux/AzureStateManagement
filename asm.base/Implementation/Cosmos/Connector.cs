@@ -13,18 +13,18 @@ namespace Asm.Implementation.Cosmos
         protected readonly CosmosDbConnectionConfig Config;
         protected readonly IFallBackLogger Logger;
         protected readonly CosmosSerializer Serializer;
-        protected readonly IMicroService ApplicationName;
+        protected readonly MicroService MicroService;
 
         public Connector(
             IFallBackLogger logger, 
             CosmosDbConnectionConfig config, 
             CosmosSerializer serializer,
-            IMicroService applicationName)
+            MicroService applicationName)
         {
             Logger = logger;
             Config = config;
             Serializer = serializer;
-            ApplicationName = applicationName;
+            MicroService = applicationName;
 
             client = new Lazy<Task<CosmosClient>>(CreateNewClient, System.Threading.LazyThreadSafetyMode.PublicationOnly);
             database = new Lazy<Task<Database>>(InitDatabase, System.Threading.LazyThreadSafetyMode.PublicationOnly);
@@ -40,16 +40,16 @@ namespace Asm.Implementation.Cosmos
             else
                 return await task;
         }
-        protected virtual async Task<CosmosClient> CreateNewClient()
+        protected virtual Task<CosmosClient> CreateNewClient()
         {
             var connector = new CosmosClient(
-                Config.Uri.ToString(),
+                Config.Endpoint,
                 new CosmosClientOptions
                 {
-                    AllowBulkExecution = true,
-                    ApplicationName = "ASM",
-                    ApplicationPreferredRegions = new[] { "" },
-                    ApplicationRegion = "nn",
+                    AllowBulkExecution = false,
+                    ApplicationName = MicroService.Name,
+                    //ApplicationPreferredRegions = new[] { "" },
+                    //ApplicationRegion = "westheurope", //LocationNames.NorthEurope,
                     ConnectionMode = ConnectionMode.Direct,
                     ConsistencyLevel = ConsistencyLevel.Session,
                     //CustomHandlers = new RequestHandler[0],
@@ -66,19 +66,17 @@ namespace Asm.Implementation.Cosmos
                     PortReuseMode = null,
                     //RequestTimeout
                     Serializer = Serializer,
-                    SerializerOptions = new CosmosSerializationOptions
-                    {
-                        IgnoreNullValues = true,
-                        Indented = false,
-                        PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
-                    },
-                    WebProxy = null,
+                    //SerializerOptions = new CosmosSerializationOptions
+                    //{
+                    //    IgnoreNullValues = true,
+                    //    Indented = false,
+                    //    PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
+                    //},
+                    //WebProxy = null,
                 }
                 );
 
-
-            return connector;
-
+            return Task.FromResult(connector);
         }
 
 
@@ -93,12 +91,12 @@ namespace Asm.Implementation.Cosmos
         }
         protected virtual async Task<Database> InitDatabase()
         {
-            var dbID = ApplicationName.Name;
+            var dbID = MicroService.Name;
 
             var client = await DbClient();
             var response = await client.CreateDatabaseIfNotExistsAsync(
                 dbID,
-                ThroughputProperties.CreateAutoscaleThroughput(500));
+                ThroughputProperties.CreateAutoscaleThroughput(50000));
 
             Logger.LogInformation($"Created database {dbID} -> {response.StatusCode}");
 

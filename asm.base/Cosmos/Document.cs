@@ -12,15 +12,29 @@ namespace Asm.Cosmos
         /// <summary>
         /// Contains a string which will change if the content of the document changes.
         /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("_etag")]
         public virtual string ETag { get; set; }
         /// <summary>
         /// Contains the ID of the document.
         /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("id")]
         public virtual string ID { get; set; }
         /// <summary>
         /// Contains the partition key of the document.
         /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("pk")]
         public virtual string PartitionKey { get; set; }
+        /// <summary>
+        /// Indicates when the record was created/updated
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("_ts")]
+        public virtual long TimeStamp { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("_self")]
+        public string Self { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("_rid")]
+        public string _rid { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("_attachments")]
+        public string Attachments { get; set; }
     }
 
     /// <summary>

@@ -14,7 +14,7 @@ namespace Asm.Implementation.Cosmos.Containers
         /// <summary>
         /// Returns the container to read/write stuff to.
         /// </summary>
-        Task<Container> Container { get; }
+        Task<Container> Container();
     }
 
     public class PrimaryContainer : IPrimaryContainer
@@ -28,21 +28,22 @@ namespace Asm.Implementation.Cosmos.Containers
 
         public async Task<Container> Container()
         {
+            const string COL_NAME = "asm.primary";
             var db = await Connector.Database();
-            var response = await db.CreateContainerAsync(new ContainerProperties("asm.primary", "pk")
+            var response = await db.CreateContainerIfNotExistsAsync(new ContainerProperties(COL_NAME, "/pk")
             {
                 DefaultTimeToLive = -1,
-                PartitionKeyPath = "pk",
+                PartitionKeyPath = "/pk",
                 PartitionKeyDefinitionVersion = PartitionKeyDefinitionVersion.V2,
                 ConflictResolutionPolicy = new ConflictResolutionPolicy
                 {
                     Mode = ConflictResolutionMode.Custom,
-                    ResolutionProcedure = "conflictResolutionMode"
+                    ResolutionProcedure = $"dbs/{db.Id}/colls/{COL_NAME}/sprocs/conflictResolutionMode"
                 },
                 IndexingPolicy = new IndexingPolicy
                 {
                     Automatic = true,
-                    IndexingMode= IndexingMode.Consistent
+                    IndexingMode = IndexingMode.Consistent
                 },
             });
 

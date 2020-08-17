@@ -87,8 +87,7 @@ namespace Asm.Cosmos
         Task<IVirtualCollection<T>> GetOrCreateCollection<T>(IVirtualCollectionDefintion definition);
     }
 
-    public interface IFallBackLogger : Microsoft.Extensions.Logging.ILogger
-    { }
+    
 
     public interface IResilientParameterStore
     {
@@ -124,7 +123,7 @@ namespace Asm.Cosmos
         /// <typeparam name="T"></typeparam>
         /// <param name="key">The key of the parameter</param>
         /// <returns>The data that was deleted</returns>
-        Task<ParameterDocument<T>> Delete<T>(ParameterDocument<T> document);
+        Task Delete<T>(ParameterDocument<T> document);
         /// <summary>
         /// Deletes the parameter, if and only if the parameter has not changed in the mean time.
         /// </summary>
@@ -132,7 +131,7 @@ namespace Asm.Cosmos
         /// <typeparam name="T"></typeparam>
         /// <param name="document"></param>
         /// <returns>The removed parameter.</returns>
-        Task<ParameterDocument<T>> Delete<T>(string key);
+        Task Delete<T>(string key);
     }
 
     /// <summary>
@@ -143,15 +142,12 @@ namespace Asm.Cosmos
         /// <summary>
         /// The URI to the cosmos-db
         /// </summary>
-        public Uri Uri { get; set; }
+        public string Endpoint { get; set; }
         /// <summary>
         /// The key to connect to the cosmos db
         /// </summary>
         public string Key { get; set; }
     }
 
-    public class IMicroService
-    {
-        public string Name { get; set; }
-    }
+    
 }

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using Asm.Implementation.Cosmos.Containsers;
+using Asm.Implementation.Cosmos.Containers;
 using Microsoft.Azure.Cosmos;
 
 namespace Asm.Implementation.Cosmos
@@ -37,7 +37,7 @@ namespace Asm.Implementation.Cosmos
             if (string.IsNullOrWhiteSpace(key))
                 throw new ArgumentNullException(nameof(key));
 
-            var container = await PrimaryContainer.Container;
+            var container = await PrimaryContainer.Container();
 
             var id = ToFullID(key);
             var document = new ParameterDocument<T>
@@ -59,48 +59,46 @@ namespace Asm.Implementation.Cosmos
             return result.Resource;
         }
 
-        public async Task<ParameterDocument<T>> Delete<T>(string key)
+        public async Task Delete<T>(string key)
         {
             if (string.IsNullOrWhiteSpace(key))
                 throw new ArgumentNullException(nameof(key));
 
-            var container = await PrimaryContainer.Container;
+            var container = await PrimaryContainer.Container();
 
             var fullKey = ToFullID(key);
 
-            var result = await container.DeleteItemAsync<ParameterDocument<T>>(
+            await container.DeleteItemAsync<ParameterDocument<T>>(
                 fullKey,
                 new PartitionKey(fullKey),
                 new ItemRequestOptions
                 {
                     EnableContentResponseOnWrite = true,
                     ConsistencyLevel = Microsoft.Azure.Cosmos.ConsistencyLevel.Session
-                });
-
-            return result.Resource;
+                })
+                .ConfigureAwait(false);
         }
 
-        public async Task<ParameterDocument<T>> Delete<T>(ParameterDocument<T> document)
+        public async Task Delete<T>(ParameterDocument<T> document)
         {
             ValidateDocument(document);
 
-            var container = await PrimaryContainer.Container;
-            var result = await container.DeleteItemAsync<ParameterDocument<T>>(
+            var container = await PrimaryContainer.Container();
+            await container.DeleteItemAsync<ParameterDocument<T>>(
                 document.ID,
                 new PartitionKey(document.PartitionKey),
                 new ItemRequestOptions
                 {
-                    EnableContentResponseOnWrite = true,
+                    //EnableContentResponseOnWrite = true,
                     ConsistencyLevel = Microsoft.Azure.Cosmos.ConsistencyLevel.Session,
                     IfMatchEtag = document.ETag
-                });
-
-            return result.Resource;
+                })
+                .ConfigureAwait(false);
         }
 
         public async Task<ParameterDocument<T>> Get<T>(string key)
         {
-            var container = await PrimaryContainer.Container;
+            var container = await PrimaryContainer.Container();
 
             var query = new QueryDefinition(@"SELECT * FROM collection c WHERE c.id = @id")
                 .WithParameter("@id", ToFullID(key));
@@ -123,7 +121,7 @@ namespace Asm.Implementation.Cosmos
         {
             ValidateDocument(document);
 
-            var container = await PrimaryContainer.Container;
+            var container = await PrimaryContainer.Container();
 
             var result = await container.UpsertItemAsync(document,
                 new PartitionKey(document.PartitionKey),
